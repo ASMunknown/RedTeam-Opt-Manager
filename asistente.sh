@@ -39,7 +39,8 @@ show_menu() {
     echo -e "${BLUE}==========================================${NC}"
     echo -e "1) Instalar Nueva Herramienta (Git + Venv + Alias)"
     echo -e "2) Ver Alias Actuales en el Sistema"
-    echo -e "3) Salir"
+    echo -e "3) Repara GUIs (WSL2)"
+    echo -e "4) Salir"
     echo -e "${BLUE}------------------------------------------${NC}"
     echo -n "Selecciona una opción: "
 }
