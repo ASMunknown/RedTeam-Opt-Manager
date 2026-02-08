@@ -25,6 +25,13 @@ if [ ! -f "$INSTALLER_SCRIPT" ]; then
     exit 1
 fi
 
+GUI_FIX_SCRIPT="./gui_fix.sh"
+if [ ! -f "$GUI_FIX_SCRIPT" ]; then
+    echo -e "${RED}[!] No se encuentra el archivo $GUI_FIX_SCRIPT en este directorio.${NC}"
+    exit 1
+fi
+
+
 # Función para mostrar el menú
 show_menu() {
     echo -e "\n${BLUE}==========================================${NC}"
@@ -75,7 +82,15 @@ while true; do
             
             read -p "Presiona Enter para continuar..." temp
             ;;
-        3)
+            
+         3)
+            # Llamamos a la nueva función de reparación
+            echo -e "${GREEN}Limpiando procesos...${NC}"
+            bash "$GUI_FIX_SCRIPT"
+            exit 0
+            ;;
+            
+        4)
             echo -e "${RED}Saliendo...${NC}"
             exit 0
             ;;
