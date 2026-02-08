@@ -18,18 +18,25 @@ BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Verificamos que el script instalador exista
-INSTALLER_SCRIPT="./install_tool.sh"
+# Verificamos que TODOS los scripts existan
+INSTALLER_SCRIPT="./src/install_tool.sh"
 if [ ! -f "$INSTALLER_SCRIPT" ]; then
     echo -e "${RED}[!] No se encuentra el archivo $INSTALLER_SCRIPT en este directorio.${NC}"
     exit 1
 fi
 
-GUI_FIX_SCRIPT="./gui_fix.sh"
+GUI_FIX_SCRIPT="./src/gui_fix.sh"
 if [ ! -f "$GUI_FIX_SCRIPT" ]; then
     echo -e "${RED}[!] No se encuentra el archivo $GUI_FIX_SCRIPT en este directorio.${NC}"
     exit 1
 fi
+
+SET_TARGET="./src/set_target.sh"
+if [ ! -f "$GUI_FIX_SCRIPT" ]; then
+    echo -e "${RED}[!] No se encuentra el archivo $SET_TARGET en este directorio.${NC}"
+    exit 1
+fi
+
 # =================================================================
 # FUNCIÓN DE AUTO-INSTALACIÓN (NUEVA)
 # =================================================================
@@ -45,20 +52,23 @@ install_self() {
         echo -e "${YELLOW}[!] El directorio ya existe. Actualizando archivos...${NC}"
     else
         mkdir -p "$TARGET_DIR"
+	mkdir -p "$TARGET_DIR/src"
     fi
     
     # Copiamos solo los scripts y el readme
-    cp asistente.sh install_tool.sh gui_fix.sh README.md "$TARGET_DIR/"
+    cp asistente.sh "$TARGET_DIR/"
+    cp ./src/* "$TARGET_DIR/src"
     
     # 2. Asignar permisos ejecutables
     echo -e "${CYAN}[2/3] Ajustando permisos...${NC}"
     chmod +x "$TARGET_DIR"/*.sh
+    chmod +x "$TARGET_DIR/src"/*.sh
     
     # IMPORTANTE: Cambiamos el dueño a root, ya que es una herramienta de sistema
     chown -R root:root "$TARGET_DIR"
     
     # 3. Crear Alias Global
-    echo -e "${CYAN}[3/3] Creando alias global '$ALIAS_NAME'...${NC}"
+    echo -e "${CYAN}[3/3] Creando alias global '$ALIAS_NAME' y 'refresh'...${NC}"
     
     # El alias debe invocar sudo automáticamente porque main.sh lo requiere
     ALIAS_CMD="alias $ALIAS_NAME='sudo $TARGET_DIR/$ALIAS_NAME.sh'"
@@ -70,6 +80,8 @@ install_self() {
             sed -i "/alias $ALIAS_NAME=/d" "$rc_file"
             echo -e "\n# Alias para RedTeam Manager" >> "$rc_file"
             echo "$ALIAS_CMD" >> "$rc_file"
+	    echo "# Alias para refrescar variables" >> "$rc_file"
+	    echo "alias refresh='source /etc/environment && source $1'" >> "$rc_file"
             echo -e "${GREEN}[+] Alias agregado a $rc_file${NC}"
         fi
     }
@@ -84,15 +96,16 @@ install_self() {
 
 # Función para mostrar el menú
 show_menu() {
-    echo -e "\n${BLUE}==========================================${NC}"
+    echo -e "\n${BLUE}==================================================${NC}"
     echo -e "      ${YELLOW}AUTOMATIZACIÓN DE HERRAMIENTAS${NC}"
-    echo -e "${BLUE}==========================================${NC}"
+    echo -e "${BLUE}==================================================${NC}"
     echo -e "1) Instalar Nueva Herramienta (Git + Venv + Alias)"
     echo -e "2) Ver Alias Actuales en el Sistema"
     echo -e "3) Repara GUIs (WSL2)"
     echo -e "4) Autoinstalación"
-    echo -e "5) Salir"
-    echo -e "${BLUE}------------------------------------------${NC}"
+    echo -e "5) Definir objetivo (like HTB)"
+    echo -e "0) Salir"
+    echo -e "${BLUE}--------------------------------------------------${NC}"
     echo -n "Selecciona una opción: "
 }
 
@@ -146,10 +159,16 @@ while true; do
             install_self
             read -p "Presiona Enter..." temp
             ;;
-            
-        5)
-            echo -e "${RED}Saliendo...${NC}"
-            exit 0
+	5)
+            # Llamando a la funcionalidad de set target
+	    echo -e "${GREEN}Configurando objetivo...${NC}"
+            source "$SET_TARGET"
+            ;;
+
+        0)
+            echo -e "${RED}\nSaliendo...${NC}"
+            echo -e "${YELLOW}\nNo te olvides de refrescar la sesión usando 'refresh'"
+	    exit 0
             ;;
         *)
             echo -e "${RED}[!] Opción no válida.${NC}"
