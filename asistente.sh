@@ -32,9 +32,15 @@ check_scripts() {
         if [ -f "$BASE_LOCAL/$script" ]; then
             # Si existe localmente, asignamos la variable dinámicamente
             declare -g "$(echo $script | cut -d. -f1 | tr '[:lower:]' '[:upper:]')_SCRIPT"="$BASE_LOCAL/$script"
+            SET_TARGET="$BASE_LOCAL/set_target.sh"
+            GUI_FIX_SCRIPT="$BASE_LOCAL/gui_fix.sh"
+            INSTALLER_SCRIPT="$BASE_LOCAL/install_tool.sh"
         elif [ -f "$BASE_GLOBAL/$script" ]; then
             # Si no existe local, buscamos en la ruta global
             declare -g "$(echo $script | cut -d. -f1 | tr '[:lower:]' '[:upper:]')_SCRIPT"="$BASE_GLOBAL/$script"
+	    SET_TARGET="$BASE_GLOBAL/set_target.sh"
+	    GUI_FIX_SCRIPT="$BASE_GLOBAL/gui_fix.sh"
+	    INSTALLER_SCRIPT="$BASE_GLOBAL/install_tool.sh"
         else
             echo -e "${RED}[!] Error: No se encuentra '$script' en $BASE_LOCAL ni en $BASE_GLOBAL${NC}"
             return 1 2>/dev/null || exit 1
