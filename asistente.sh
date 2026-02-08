@@ -18,24 +18,32 @@ BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Verificamos que TODOS los scripts existan
-INSTALLER_SCRIPT="./src/install_tool.sh"
-if [ ! -f "$INSTALLER_SCRIPT" ]; then
-    echo -e "${RED}[!] No se encuentra el archivo $INSTALLER_SCRIPT en este directorio.${NC}"
-    exit 1
-fi
 
-GUI_FIX_SCRIPT="./src/gui_fix.sh"
-if [ ! -f "$GUI_FIX_SCRIPT" ]; then
-    echo -e "${RED}[!] No se encuentra el archivo $GUI_FIX_SCRIPT en este directorio.${NC}"
-    exit 1
-fi
+# 1. Definimos las rutas base de búsqueda
+BASE_LOCAL="./src"
+BASE_GLOBAL="/opt/RedTeam-Manager/src"
 
-SET_TARGET="./src/set_target.sh"
-if [ ! -f "$GUI_FIX_SCRIPT" ]; then
-    echo -e "${RED}[!] No se encuentra el archivo $SET_TARGET en este directorio.${NC}"
-    exit 1
-fi
+# 2. Lista de scripts necesarios
+SCRIPTS=("install_tool.sh" "gui_fix.sh" "set_target.sh")
+
+# 3. Función para validar y asignar la ruta correcta
+check_scripts() {
+    for script in "${SCRIPTS[@]}"; do
+        if [ -f "$BASE_LOCAL/$script" ]; then
+            # Si existe localmente, asignamos la variable dinámicamente
+            declare -g "$(echo $script | cut -d. -f1 | tr '[:lower:]' '[:upper:]')_SCRIPT"="$BASE_LOCAL/$script"
+        elif [ -f "$BASE_GLOBAL/$script" ]; then
+            # Si no existe local, buscamos en la ruta global
+            declare -g "$(echo $script | cut -d. -f1 | tr '[:lower:]' '[:upper:]')_SCRIPT"="$BASE_GLOBAL/$script"
+        else
+            echo -e "${RED}[!] Error: No se encuentra '$script' en $BASE_LOCAL ni en $BASE_GLOBAL${NC}"
+            return 1 2>/dev/null || exit 1
+        fi
+    done
+}
+
+# 4. Ejecutamos la validación
+check_scripts
 
 # =================================================================
 # FUNCIÓN DE AUTO-INSTALACIÓN (NUEVA)
